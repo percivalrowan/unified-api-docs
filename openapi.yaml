@@ -1,0 +1,464 @@
+openapi: 3.1.0
+info:
+  title: ArgoLink unified AI API (documented surface)
+  version: "2026-10-07"
+  summary: Text, image and video endpoints behind one base URL and one key.
+  description: |
+    Compiled from https://argolink.io/en/docs and the model pages at
+    https://argolink.io/en/models/{id} on 2026-10-07. Only fields those pages document are
+    listed; model-specific limits are in each field's description. The live docs win when
+    they differ from this file.
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: https://argolink.io
+security:
+  - bearerAuth: []
+tags:
+  - name: discovery
+  - name: text
+  - name: images
+  - name: video
+paths:
+  /v1/models:
+    get:
+      tags: [discovery]
+      summary: List public model IDs (OpenAI shape). No key needed.
+      operationId: listModels
+      security: []
+      responses:
+        "200":
+          description: Every model ArgoLink currently sells.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModelList" }
+  /models:
+    get:
+      tags: [discovery]
+      summary: Exact alias of /v1/models for clients fixed to the root path.
+      operationId: listModelsRoot
+      security: []
+      responses:
+        "200":
+          description: Same body as /v1/models.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModelList" }
+  /v1beta/models:
+    get:
+      tags: [discovery]
+      summary: The same catalog in the Gemini ListModels shape. No key needed.
+      operationId: listModelsGemini
+      security: []
+      responses:
+        "200":
+          description: "`name` carries a `models/` prefix; `baseModelId` is the raw ID."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  models:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name: { type: string, examples: ["models/gpt-5.6-sol"] }
+                        baseModelId: { type: string, examples: ["gpt-5.6-sol"] }
+                        version: { type: string }
+                        displayName: { type: string }
+                        description: { type: string }
+  /v1/responses:
+    post:
+      tags: [text]
+      summary: OpenAI Responses protocol. Recommended for GPT and Grok models; Codex speaks it.
+      operationId: createResponse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResponsesRequest" }
+      responses:
+        "200":
+          description: Text is in output[] items of type output_text; usage holds token counts.
+          content:
+            application/json:
+              schema: { type: object }
+            text/event-stream:
+              schema: { type: string }
+        default: { $ref: "#/components/responses/Error" }
+  /v1/chat/completions:
+    post:
+      tags: [text]
+      summary: OpenAI Chat Completions. Recommended for DeepSeek, GLM and Kimi; accepted for every text model.
+      operationId: createChatCompletion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChatCompletionRequest" }
+      responses:
+        "200":
+          description: Text is in choices[0].message.content; finish reason in choices[0].finish_reason.
+          content:
+            application/json:
+              schema: { type: object }
+            text/event-stream:
+              schema: { type: string }
+        default: { $ref: "#/components/responses/Error" }
+  /v1/messages:
+    post:
+      tags: [text]
+      summary: Anthropic Messages. Recommended for Claude; also open for Grok, DeepSeek, GLM and Kimi; not open for OpenAI models.
+      operationId: createMessage
+      security:
+        - apiKeyHeader: []
+        - bearerAuth: []
+      parameters:
+        - name: anthropic-version
+          in: header
+          required: false
+          schema: { type: string, examples: ["2023-06-01"] }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MessagesRequest" }
+      responses:
+        "200":
+          description: Content blocks in content[]; stop_reason; usage.
+          content:
+            application/json:
+              schema: { type: object }
+            text/event-stream:
+              schema: { type: string }
+        default: { $ref: "#/components/responses/Error" }
+  /v1/images/generations:
+    post:
+      tags: [images]
+      summary: Text to image for every model in the image category. Set a client timeout of at least 600 s.
+      operationId: createImage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ImageRequest" }
+      responses:
+        "200":
+          description: Images in data[].b64_json or data[].url; every returned image is billed.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImageResponse" }
+        default: { $ref: "#/components/responses/Error" }
+  /v1/images/edits:
+    post:
+      tags: [images]
+      summary: Reference edits, as JSON image links or as multipart files (one image[] part per file).
+      operationId: editImage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/ImageRequest"
+                - type: object
+                  required: [images]
+                  properties:
+                    images:
+                      type: array
+                      description: "Public HTTPS URLs or data URLs. Limits: GPT Image 16, Nano Banana 14, Grok Image 3."
+                      items:
+                        type: object
+                        properties:
+                          image_url:
+                            description: "A URL string (GPT Image, Nano Banana) or {url: ...} (Grok Image)."
+          multipart/form-data:
+            schema:
+              type: object
+              required: [model, prompt]
+              properties:
+                model: { type: string }
+                prompt: { type: string }
+                "image[]":
+                  type: array
+                  items: { type: string, format: binary }
+      responses:
+        "200":
+          description: Same shape as generations.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImageResponse" }
+        default: { $ref: "#/components/responses/Error" }
+  /v1/media/uploads:
+    post:
+      tags: [video]
+      summary: Get an upload ticket for a local file, PUT the bytes to upload_url, then send media_url in a video request.
+      operationId: createUpload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [model, type, content_type, size_bytes]
+              properties:
+                model: { type: string, examples: ["seedance-2.5"] }
+                type: { type: string, enum: [image, video, audio] }
+                content_type:
+                  type: string
+                  description: "image/jpeg, image/png (image/webp is accepted for tickets but Seedance takes JPEG and PNG only); video/mp4, video/quicktime, video/webm; audio/mpeg, audio/wav, audio/mp4, audio/aac."
+                size_bytes: { type: integer, description: Must equal the real file size. }
+      responses:
+        "200":
+          description: Tickets are free and do not create a job.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  upload_url: { type: string, description: "PUT target, valid 15 minutes; send exactly the declared Content-Type." }
+                  media_url: { type: string, description: Readable for 7 days. }
+                  upload_expires_at: { type: string }
+                  expires_at: { type: string }
+        default: { $ref: "#/components/responses/Error" }
+  /v1/videos/generations:
+    post:
+      tags: [video]
+      summary: Submit an asynchronous video job.
+      operationId: createVideo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/VideoRequest" }
+      responses:
+        "202":
+          description: Accepted. Keep request_id; it is the only handle for status, download and billing.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [request_id]
+                properties:
+                  request_id: { type: string }
+        default: { $ref: "#/components/responses/Error" }
+  /v1/videos/{request_id}:
+    get:
+      tags: [video]
+      summary: Job status. Poll every 10-15 seconds.
+      operationId: getVideo
+      parameters:
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "200":
+          description: Current job state.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VideoJob" }
+        "404":
+          description: Unknown request_id, or a key that belongs to another user (video_request_not_found).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /v1/videos/{request_id}/content:
+    get:
+      tags: [video]
+      summary: Download the finished MP4 (Range supported).
+      operationId: getVideoContent
+      parameters:
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "200":
+          description: The MP4 stream.
+          content:
+            video/mp4:
+              schema: { type: string, format: binary }
+        "409":
+          description: job_video_not_ready - the job is still pending.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "424":
+          description: job_failed - the job failed; its status carries the reason.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-api-key
+  parameters:
+    RequestId:
+      name: request_id
+      in: path
+      required: true
+      schema: { type: string }
+  responses:
+    Error:
+      description: Error envelope. 401 missing/invalid key; 402/403 balance or group permission; 429 rate limit; 503 no capacity (retry after Retry-After).
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+  schemas:
+    ModelList:
+      type: object
+      properties:
+        object: { const: list }
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string, description: The ID to send as model. }
+              object: { const: model }
+              created: { type: integer, description: Compatibility field, currently always 0. }
+              owned_by: { type: string, examples: [openai, anthropic, xai, bytedance, deepseek, zhipu, kimi, alibaba, minimax, google] }
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            type: { type: string, examples: [invalid_request_error, authentication_error, rate_limit_error, overloaded_error, api_error, not_found_error] }
+            code: { type: string, examples: [field_invalid, request_unsupported, job_video_not_ready, job_failed, no_capacity, video_request_not_found] }
+            param: { type: string, description: The request field at fault, when there is one. }
+            message: { type: string }
+    ResponsesRequest:
+      type: object
+      required: [model, input]
+      properties:
+        model: { type: string, examples: [gpt-6-sol, grok-4.6, deepseek-v4-pro] }
+        input:
+          description: A string, or role-based messages with input_text and input_image parts.
+          oneOf:
+            - type: string
+            - type: array
+              items: { type: object }
+        instructions: { type: string }
+        stream: { type: boolean }
+        max_output_tokens: { type: integer }
+        tools: { type: array, items: { type: object } }
+        tool_choice: {}
+        reasoning:
+          type: object
+          properties:
+            effort: { type: string, description: "Accepted levels differ per model; see the model page." }
+        service_tier: { type: string, description: "priority (or fast) asks for Fast mode on GPT models, billed at 2x (2.5x on gpt-5.5)." }
+    ChatCompletionRequest:
+      type: object
+      required: [model, messages]
+      properties:
+        model: { type: string, examples: [deepseek-v4-pro, glm-5.3, kimi-k3, gpt-6-sol] }
+        messages: { type: array, items: { type: object } }
+        stream: { type: boolean }
+        max_completion_tokens: { type: integer }
+        max_tokens: { type: integer, description: Legacy name, still accepted. }
+        tools: { type: array, items: { type: object } }
+        tool_choice: {}
+        reasoning_effort: { type: string, description: "Per-model levels and defaults; e.g. kimi-k3 low/high/max, glm-5.3 low/high/max, deepseek-v4.1-flash none/low/high/max." }
+        thinking: { type: object, description: "Not universal; several models ignore thinking.type=disabled." }
+    MessagesRequest:
+      type: object
+      required: [model, messages, max_tokens]
+      properties:
+        model: { type: string, examples: [claude-opus-5, claude-sonnet-5, kimi-k2.7-code] }
+        messages: { type: array, items: { type: object } }
+        max_tokens: { type: integer }
+        system: {}
+        stream: { type: boolean }
+        tools: { type: array, items: { type: object } }
+        tool_choice: {}
+        thinking: { type: object }
+        output_config: { type: object }
+    ImageRequest:
+      type: object
+      required: [model, prompt]
+      properties:
+        model: { type: string, examples: [gpt-image-2, nano-banana-2, grok-imagine-image-2.0] }
+        prompt: { type: string }
+        n: { type: integer, description: "GPT Image 1-7, Nano Banana 1-4, Grok Image 1-10. Each returned image is billed." }
+        response_format: { type: string, enum: [b64_json, url], description: "Nano Banana returns b64_json only." }
+        size: { type: string, description: "GPT Image only: pixel size such as 1024x1024 or 3840x2160; put the aspect ratio in the prompt." }
+        quality: { type: string, description: "GPT Image: auto, low, medium, high. grok-imagine-image-2.0: low, medium, auto." }
+        aspect_ratio: { type: string, description: "Nano Banana and Grok Image. Nano Banana default 1:1." }
+        resolution: { type: string, description: "Nano Banana: 1k, 2k, 4k (Lite 1k only). Grok Image: 1k, 2k (1.5k on 2.0 and quality)." }
+    ImageResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              b64_json: { type: string }
+              url: { type: string }
+    MediaRef:
+      type: object
+      required: [url]
+      properties:
+        url: { type: string, format: uri, description: "Public https:// URL, or a media_url from /v1/media/uploads." }
+    VideoRequest:
+      type: object
+      required: [model, prompt]
+      properties:
+        model:
+          type: string
+          enum: [seedance-2.5, seedance-2.0, seedance-2.0-mini, seedance-2.0-fast, wan-3, wan-3-prime, minimax-h3, grok-imagine-video-1.5]
+        prompt: { type: string, description: "Required in every mode. Max length: Seedance 40,000 bytes; Wan 20,000 characters; MiniMax H3 7,000 characters." }
+        duration:
+          type: integer
+          description: "Whole seconds, default 5. seedance-2.5 4-30; seedance-2.0 family 4-15; wan-3 2-30; wan-3-prime 4-30; minimax-h3 4-15; grok-imagine-video-1.5 1-15 (default 8)."
+        resolution:
+          type: string
+          description: "seedance-2.5 480p/720p/1080p; seedance-2.0 also 4k; 2.0 mini and fast 480p/720p; wan-3 and wan-3-prime 480p/720p/1080p; minimax-h3 768p/2k; grok 480p/720p/1080p."
+        aspect_ratio: { type: string, description: "Model-specific set; frame modes use adaptive (Seedance 2.5 and MiniMax H3 accept adaptive only there)." }
+        size: { type: string, description: "WIDTHxHEIGHT instead of resolution + aspect_ratio, e.g. 1280x720." }
+        start_image: { $ref: "#/components/schemas/MediaRef" }
+        end_image: { $ref: "#/components/schemas/MediaRef" }
+        reference_images: { type: array, items: { $ref: "#/components/schemas/MediaRef" } }
+        reference_videos: { type: array, items: { $ref: "#/components/schemas/MediaRef" }, description: "Their seconds are billed like output seconds." }
+        reference_audios: { type: array, items: { $ref: "#/components/schemas/MediaRef" } }
+        omni_reference_task_type: { type: string, enum: [edit], description: "Video edit on seedance-2.5 and wan-3: the first reference video is the one edited." }
+        generate_audio: { type: boolean, description: "Default true. wan-3-prime and minimax-h3 always add a soundtrack." }
+        n: { type: integer, const: 1 }
+        seed: { type: integer, description: "Accepted by wan-3; rejected (400) by Seedance." }
+        image: { description: "grok-imagine-video-1.5 only: first frame as a URL, base64 data URI or file_id." }
+        last_frame: { description: "grok-imagine-video-1.5 only." }
+        keyframes: { type: array, description: "grok-imagine-video-1.5 only: up to 4 images at moments inside the clip." }
+    VideoJob:
+      type: object
+      required: [request_id, status]
+      properties:
+        request_id: { type: string }
+        status: { type: string, enum: [pending, done, failed, expired] }
+        model: { type: string }
+        created_at: { type: integer, description: Unix seconds. }
+        progress: { type: integer, description: "0-99 while pending, 100 when done." }
+        estimated_seconds_remaining: { type: integer }
+        usage:
+          type: object
+          properties:
+            output_seconds: { type: integer }
+            reference_video_seconds: { type: integer }
+            billed_seconds: { type: integer }
+        video:
+          type: object
+          properties:
+            duration: { type: integer }
+            url: { type: string, description: The content endpoint; request it with the same key. }
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              examples: [invalid_input, content_policy_violation, copyright_violation, generation_failed, generation_timeout, capacity_unavailable, internal_error, cancelled]
+            message: { type: string }
+            retryable: { type: boolean }
+            field: { type: string }

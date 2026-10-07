@@ -1,0 +1,277 @@
+{
+ "source": "https://argolink.io/api/catalog/v1/models?page_size=100",
+ "fetched": "2026-10-07",
+ "revision": "0315cdd070b19ded",
+ "items": [
+  {
+   "id": "gpt-6-astra",
+   "provider_id": "openai",
+   "category": "chat",
+   "endpoint": "/v1/responses"
+  },
+  {
+   "id": "gpt-5.6-luna",
+   "provider_id": "openai",
+   "category": "chat",
+   "endpoint": "/v1/responses"
+  },
+  {
+   "id": "gpt-5.6-terra",
+   "provider_id": "openai",
+   "category": "chat",
+   "endpoint": "/v1/responses"
+  },
+  {
+   "id": "gpt-5.6-sol",
+   "provider_id": "openai",
+   "category": "chat",
+   "endpoint": "/v1/responses"
+  },
+  {
+   "id": "claude-opus-5",
+   "provider_id": "anthropic",
+   "category": "chat",
+   "endpoint": "/v1/messages"
+  },
+  {
+   "id": "claude-fable-5-1",
+   "provider_id": "anthropic",
+   "category": "chat",
+   "endpoint": "/v1/messages"
+  },
+  {
+   "id": "claude-fable-5",
+   "provider_id": "anthropic",
+   "category": "chat",
+   "endpoint": "/v1/messages"
+  },
+  {
+   "id": "grok-4.6",
+   "provider_id": "xai",
+   "category": "chat",
+   "endpoint": "/v1/responses"
+  },
+  {
+   "id": "gpt-image-2",
+   "provider_id": "openai",
+   "category": "image",
+   "endpoint": "/v1/images/generations"
+  },
+  {
+   "id": "gpt-image-2.5-flare",
+   "provider_id": "openai",
+   "category": "image",
+   "endpoint": "/v1/images/generations"
+  },
+  {
+   "id": "gpt-image-2.5-sunburst",
+   "provider_id": "openai",
+   "category": "image",
+   "endpoint": "/v1/images/generations"
+  },
+  {
+   "id": "grok-imagine-image-quality",
+   "provider_id": "xai",
+   "category": "image",
+   "endpoint": "/v1/images/generations"
+  },
+  {
+   "id": "seedance-2.5",
+   "provider_id": "bytedance",
+   "category": "video",
+   "endpoint": "/v1/videos/generations"
+  },
+  {
+   "id": "grok-imagine-video-1.5",
+   "provider_id": "xai",
+   "category": "video",
+   "endpoint": "/v1/videos/generations"
+  },
+  {
+   "id": "claude-opus-4-8",
+   "provider_id": "anthropic",
+   "category": "chat",
+   "endpoint": "/v1/messages"
+  },
+  {
+   "id": "claude-opus-5-5",
+   "provider_id": "anthropic",
+   "category": "chat",
+   "endpoint": "/v1/messages"
+  },
+  {
+   "id": "claude-sonnet-5",
+   "provider_id": "anthropic",
+   "category": "chat",
+   "endpoint": "/v1/messages"
+  },
+  {
+   "id": "deepseek-v4-pro",
+   "provider_id": "deepseek",
+   "category": "chat",
+   "endpoint": "/v1/chat/completions"
+  },
+  {
+   "id": "deepseek-v4.1-flash",
+   "provider_id": "deepseek",
+   "category": "chat",
+   "endpoint": "/v1/chat/completions"
+  },
+  {
+   "id": "glm-5.1",
+   "provider_id": "zhipu",
+   "category": "chat",
+   "endpoint": "/v1/chat/completions"
+  },
+  {
+   "id": "glm-5.2",
+   "provider_id": "zhipu",
+   "category": "chat",
+   "endpoint": "/v1/chat/completions"
+  },
+  {
+   "id": "glm-5.3",
+   "provider_id": "zhipu",
+   "category": "chat",
+   "endpoint": "/v1/chat/completions"
+  },
+  {
+   "id": "glm-5.3-flash",
+   "provider_id": "zhipu",
+   "category": "chat",
+   "endpoint": "/v1/chat/completions"
+  },
+  {
+   "id": "glm-5.3-flashx",
+   "provider_id": "zhipu",
+   "category": "chat",
+   "endpoint": "/v1/chat/completions"
+  },
+  {
+   "id": "gpt-5.4",
+   "provider_id": "openai",
+   "category": "chat",
+   "endpoint": "/v1/responses"
+  },
+  {
+   "id": "gpt-5.4-mini",
+   "provider_id": "openai",
+   "category": "chat",
+   "endpoint": "/v1/responses"
+  },
+  {
+   "id": "gpt-5.5",
+   "provider_id": "openai",
+   "category": "chat",
+   "endpoint": "/v1/responses"
+  },
+  {
+   "id": "gpt-6-sol",
+   "provider_id": "openai",
+   "category": "chat",
+   "endpoint": "/v1/responses"
+  },
+  {
+   "id": "gpt-6.1-sol",
+   "provider_id": "openai",
+   "category": "chat",
+   "endpoint": "/v1/responses"
+  },
+  {
+   "id": "grok-4.5",
+   "provider_id": "xai",
+   "category": "chat",
+   "endpoint": "/v1/responses"
+  },
+  {
+   "id": "grok-4.7",
+   "provider_id": "xai",
+   "category": "chat",
+   "endpoint": "/v1/responses"
+  },
+  {
+   "id": "grok-imagine-image",
+   "provider_id": "xai",
+   "category": "image",
+   "endpoint": "/v1/images/generations"
+  },
+  {
+   "id": "grok-imagine-image-2.0",
+   "provider_id": "xai",
+   "category": "image",
+   "endpoint": "/v1/images/generations"
+  },
+  {
+   "id": "kimi-k2.6",
+   "provider_id": "kimi",
+   "category": "chat",
+   "endpoint": "/v1/chat/completions"
+  },
+  {
+   "id": "kimi-k2.7-code",
+   "provider_id": "kimi",
+   "category": "chat",
+   "endpoint": "/v1/chat/completions"
+  },
+  {
+   "id": "kimi-k3",
+   "provider_id": "kimi",
+   "category": "chat",
+   "endpoint": "/v1/chat/completions"
+  },
+  {
+   "id": "minimax-h3",
+   "provider_id": "minimax",
+   "category": "video",
+   "endpoint": "/v1/videos/generations"
+  },
+  {
+   "id": "nano-banana-2",
+   "provider_id": "google",
+   "category": "image",
+   "endpoint": "/v1/images/generations"
+  },
+  {
+   "id": "nano-banana-2-lite",
+   "provider_id": "google",
+   "category": "image",
+   "endpoint": "/v1/images/generations"
+  },
+  {
+   "id": "nano-banana-pro",
+   "provider_id": "google",
+   "category": "image",
+   "endpoint": "/v1/images/generations"
+  },
+  {
+   "id": "seedance-2.0",
+   "provider_id": "bytedance",
+   "category": "video",
+   "endpoint": "/v1/videos/generations"
+  },
+  {
+   "id": "seedance-2.0-fast",
+   "provider_id": "bytedance",
+   "category": "video",
+   "endpoint": "/v1/videos/generations"
+  },
+  {
+   "id": "seedance-2.0-mini",
+   "provider_id": "bytedance",
+   "category": "video",
+   "endpoint": "/v1/videos/generations"
+  },
+  {
+   "id": "wan-3",
+   "provider_id": "alibaba",
+   "category": "video",
+   "endpoint": "/v1/videos/generations"
+  },
+  {
+   "id": "wan-3-prime",
+   "provider_id": "alibaba",
+   "category": "video",
+   "endpoint": "/v1/videos/generations"
+  }
+ ]
+}
